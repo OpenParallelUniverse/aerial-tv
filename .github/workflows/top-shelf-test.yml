@@ -16,19 +16,21 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.14.3'
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+      - uses: android-actions/setup-android@v3
       - name: Install Android SDK platform
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - name: Restore public test certificate
@@ -37,7 +39,7 @@ jobs:
           base64 --decode .github/test-signing/test.keystore.b64 > "$HOME/.android/debug.keystore"
       - name: Test, lint and build release APKs
         run: |
-          gradle --no-daemon -PtopShelfTest -PtestVersionCode="$((100000 + GITHUB_RUN_NUMBER))" \
+          gradle --no-daemon --max-workers=2 -PtopShelfTest -PtestVersionCode="$((100000 + GITHUB_RUN_NUMBER))" \
             :app:testStandardReleaseUnitTest :app:testGuardReleaseUnitTest \
             :app:lintStandardRelease :app:lintGuardRelease \
             :app:assembleStandardRelease :app:assembleGuardRelease
