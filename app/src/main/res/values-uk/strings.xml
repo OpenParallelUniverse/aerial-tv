@@ -327,4 +327,14 @@
     <string name="ts_up_hint">↑ Вибрати вміст</string>
     <string name="ts_progress">Переглянуто %1$d%%</string>
     <string name="ts_test_app_name">Aerial Top Shelf — тест</string>
+    <string name="ts_play">Відтворити</string>
+    <string name="ts_hide">Сховати в Aerial</string>
+    <string name="ts_disable_app">Вимкнути попередній перегляд застосунку</string>
+    <string name="ts_restore">Відновити перегляд</string>
+    <string name="ts_restore_hint">Відновити приховані записи та вимкнені застосунки.</string>
+    <string name="ts_next">Наступна серія</string>
+    <string name="ts_new">Нова серія</string>
+    <string name="ts_watchlist">Переглянути пізніше</string>
+    <string name="ts_episode">Серія %1$s</string>
+    <string name="ts_remaining">Залишилось %1$d хв</string>
 </resources>

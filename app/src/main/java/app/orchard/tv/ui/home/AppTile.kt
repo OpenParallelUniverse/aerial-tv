@@ -660,9 +660,9 @@ private fun tileRim(w: Int, h: Int, radius: Float, width: Float, alpha: Float = 
 }
 
 /** A tile's shadow, soft black under its continuous outline; [ext] px of it lie outside the tile on each side. */
-private class TileShadow(val image: ImageBitmap, val ext: Float)
+internal class TileShadow(val image: ImageBitmap, val ext: Float)
 
-private fun tileShadow(w: Int, h: Int, corner: Float, blur: Float): TileShadow = baked(listOf("shadow", w, h, corner, blur)) {
+internal fun tileShadow(w: Int, h: Int, corner: Float, blur: Float): TileShadow = baked(listOf("shadow", w, h, corner, blur)) {
     val ext = ceil(blur * 1.5f)
     val bitmap = createBitmap(w + 2 * ext.toInt(), h + 2 * ext.toInt())
     android.graphics.Canvas(bitmap).apply {
@@ -679,9 +679,9 @@ private fun tileShadow(w: Int, h: Int, corner: Float, blur: Float): TileShadow =
 }
 
 /** The high-contrast frame at its full gap; [ext] px of the picture lie outside the tile on each side. */
-private class RingFrame(val image: ImageBitmap, val ext: Float)
+internal class RingFrame(val image: ImageBitmap, val ext: Float)
 
-private fun ringFrame(w: Int, h: Int, corner: Float, gap: Float, width: Float, dp: Float): RingFrame =
+internal fun ringFrame(w: Int, h: Int, corner: Float, gap: Float, width: Float, dp: Float): RingFrame =
     baked(listOf("ring", w, h, corner, gap, width, dp)) {
         val out = gap + width / 2
         val halo = gap + width + dp

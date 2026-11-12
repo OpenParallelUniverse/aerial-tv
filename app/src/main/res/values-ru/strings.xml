@@ -327,4 +327,14 @@
     <string name="ts_up_hint">↑ Выбрать контент</string>
     <string name="ts_progress">Просмотрено %1$d%%</string>
     <string name="ts_test_app_name">Aerial Top Shelf — тест</string>
+    <string name="ts_play">Воспроизвести</string>
+    <string name="ts_hide">Скрыть в Aerial</string>
+    <string name="ts_disable_app">Отключить предпросмотр приложения</string>
+    <string name="ts_restore">Восстановить предпросмотр</string>
+    <string name="ts_restore_hint">Восстановить скрытые записи и отключённые приложения.</string>
+    <string name="ts_next">Следующая серия</string>
+    <string name="ts_new">Новая серия</string>
+    <string name="ts_watchlist">Посмотреть позже</string>
+    <string name="ts_episode">Серия %1$s</string>
+    <string name="ts_remaining">Осталось %1$d мин</string>
 </resources>

@@ -229,6 +229,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
      * few seconds in, when Home Guard would have bound if it were on.
      */
     private fun offerSetupOnce() {
+        if (BuildConfig.TOP_SHELF_TEST) return
         val prefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
         if (prefs.getBoolean("setup_offered", false)) return
         viewModelScope.launch {

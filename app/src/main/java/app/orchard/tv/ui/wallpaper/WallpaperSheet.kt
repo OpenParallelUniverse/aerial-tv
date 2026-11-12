@@ -128,6 +128,7 @@ fun WallpaperSheet(
     onSettled: (Boolean) -> Unit = {},
     /** Draw the closed sheet once, nearly clear, so that its first opening is not its first draw (HomeScreen). */
     warm: Boolean = false,
+    onRestoreTopShelf: () -> Unit = {},
 ) {
     val context = LocalContext.current
     var phoneUrl by remember { mutableStateOf<String?>(null) }
@@ -221,6 +222,9 @@ fun WallpaperSheet(
                         listOf(true to R.string.ts_on, false to R.string.ts_off),
                         AerialSettings.topShelf, AerialSettings::chooseTopShelf,
                     )
+                    if (Build.VERSION.SDK_INT >= 26) SettingRow(R.string.ts_restore, stringResource(R.string.ts_restore_hint), note) {
+                        ActionChip(stringResource(R.string.ts_restore), Glyph.EyeSlash, onRestoreTopShelf)
+                    }
                     if (AerialSettings.oneRowHome) Choices(
                         R.string.st_peek, stringResource(R.string.st_peek_hint), note,
                         listOf(true to R.string.st_peek_show, false to R.string.st_peek_hide),

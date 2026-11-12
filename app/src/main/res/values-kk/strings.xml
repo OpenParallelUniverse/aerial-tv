@@ -327,4 +327,14 @@
     <string name="ts_up_hint">↑ Мазмұнды таңдау</string>
     <string name="ts_progress">Қаралды: %1$d%%</string>
     <string name="ts_test_app_name">Aerial Top Shelf сынағы</string>
+    <string name="ts_play">Ойнату</string>
+    <string name="ts_hide">Aerial ішінде жасыру</string>
+    <string name="ts_disable_app">Осы қолданбаның алдын ала көрінісін өшіру</string>
+    <string name="ts_restore">Алдын ала көріністерді қалпына келтіру</string>
+    <string name="ts_restore_hint">Жасырылған жазбалар мен өшірілген қолданбаларды қалпына келтіру.</string>
+    <string name="ts_next">Келесі бөлім</string>
+    <string name="ts_new">Жаңа бөлім</string>
+    <string name="ts_watchlist">Кейін көру</string>
+    <string name="ts_episode">%1$s-бөлім</string>
+    <string name="ts_remaining">%1$d минут қалды</string>
 </resources>

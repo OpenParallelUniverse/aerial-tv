@@ -29,6 +29,7 @@ enum class ShelfAccess { Unsupported, PermissionRequired, Ready, Unavailable }
 
 /** Reads public TV listings only. Never writes browsable state or alters the stock launcher's rows. */
 class TopShelfStore(private val context: Context, private val scope: CoroutineScope) {
+    val preferences = ShelfPreferences(context)
     var programs by mutableStateOf<Map<String, List<ShelfProgram>>>(emptyMap()); private set
     var access by mutableStateOf(ShelfAccess.Unsupported); private set
     private var watching = false
@@ -49,7 +50,6 @@ class TopShelfStore(private val context: Context, private val scope: CoroutineSc
             load?.cancel()
             if (observed) runCatching { context.contentResolver.unregisterContentObserver(observer) }
             observed = false
-            programs = emptyMap()
             return
         }
         refresh()
@@ -91,7 +91,7 @@ class TopShelfStore(private val context: Context, private val scope: CoroutineSc
                     )
                     val readable = sources.mapNotNull { it.getOrNull() }
                     if (readable.isEmpty()) throw sources.firstNotNullOf { it.exceptionOrNull() }
-                    groupShelfPrograms(readable.flatten())
+                    groupShelfPrograms(readable.flatten().filter { preferences.accepts(it) })
                 }
             }
             result.onSuccess {
@@ -106,15 +106,37 @@ class TopShelfStore(private val context: Context, private val scope: CoroutineSc
         }
     }
 
+    fun hide(program: ShelfProgram) { preferences.hide(program); removeLocally() }
+    fun disable(packageName: String) { preferences.disable(packageName); removeLocally() }
+    fun restore() { preferences.restore(); refresh() }
+    private fun removeLocally() {
+        programs = programs.mapValues { (_, rows) -> rows.filter(preferences::accepts) }.filterValues { it.isNotEmpty() }
+    }
+
+    private fun readChannels(): Map<Long, String> = runCatching {
+        context.contentResolver.query(CHANNELS, arrayOf("_id", "display_name"), null, null, null)?.use { c ->
+            buildMap { while (c.moveToNext()) c.text("display_name")?.let { put(c.number("_id"), it) } }
+        } ?: emptyMap()
+    }.getOrDefault(emptyMap())
+
     internal fun readPrograms(uri: Uri, kind: ShelfKind): List<ShelfProgram> {
-        val projection = arrayOf("_id", "package_name", "title", "poster_art_uri", "thumbnail_uri", "intent_uri") +
-            if (kind == ShelfKind.Continue) arrayOf("last_playback_position_millis", "duration_millis", "last_engagement_time_utc_millis")
-            else arrayOf("weight")
+        val channelNames = if (kind == ShelfKind.Recommend) readChannels() else emptyMap()
+        val projection = arrayOf("_id", "package_name", "title", "poster_art_uri", "thumbnail_uri", "intent_uri", "browsable", "season_display_number", "episode_display_number",
+            "episode_title", "short_description", "internal_provider_id", "content_id") +
+            if (kind == ShelfKind.Continue) arrayOf("last_playback_position_millis", "duration_millis", "last_engagement_time_utc_millis", "watch_next_type")
+            else arrayOf("weight", "channel_id")
         // Non-privileged TvProvider callers cannot use SQL selection. Filter/group after reading.
-        return context.contentResolver.query(uri, projection, null, null, null)?.use { c ->
+        val cursor = try { context.contentResolver.query(uri, projection, null, null, null) }
+        catch (_: IllegalArgumentException) {
+            // Older vendor schemas may omit optional season/channel/content columns.
+            context.contentResolver.query(uri, arrayOf("_id", "package_name", "title", "poster_art_uri", "intent_uri", "browsable"), null, null, null)
+        }
+        return cursor?.use { c ->
             buildList {
                 var scanned = 0
                 while (scanned++ < 6000 && c.moveToNext()) {
+                    val browsable = c.getColumnIndex("browsable")
+                    if (browsable >= 0 && !c.isNull(browsable) && c.getLong(browsable) == 0L) continue
                     val pkg = c.text("package_name") ?: continue
                     val title = c.text("title") ?: continue
                     val intent = c.text("intent_uri") ?: continue
@@ -123,6 +145,10 @@ class TopShelfStore(private val context: Context, private val scope: CoroutineSc
                         posterUri = c.text("poster_art_uri") ?: c.text("thumbnail_uri"), intentUri = intent, kind = kind,
                         positionMs = c.number("last_playback_position_millis"), durationMs = c.number("duration_millis"),
                         engagementTime = c.number("last_engagement_time_utc_millis"), weight = c.number("weight").toInt(),
+                        watchNextType = c.number("watch_next_type").toInt(), season = c.text("season_display_number"),
+                        episode = c.text("episode_display_number"), episodeTitle = c.text("episode_title"),
+                        description = c.text("short_description"), channelName = channelNames[c.number("channel_id")],
+                        contentId = c.text("content_id") ?: c.text("internal_provider_id"),
                     ))
                 }
             }

@@ -1,56 +1,50 @@
-# Aerial Top Shelf 初版测试
+# Top Shelf P1/P2 隔离测试版
 
-实验性预发布版本，尚未在真机验证。使用 release 优化构建，提供 standard 和 guard 两种 APK。
+本版本为预发布优化 release，尚待真机验收。包名 `app.orchard.tv.topshelf`，Activity 是 `app.orchard.tv.MainActivity`。
 
-## 安装
+## 安装与正式版隔离
 
-- 包名为 `app.orchard.tv.topshelf`，名称为「Aerial Top Shelf 测试版」，可与原版共存；原版的设置和授权不继承。
-- 测试包使用独立、公开的测试证书，不会覆盖原版。后续本分支 CI 测试包可互相覆盖升级。
-- 能安装第三方桌面的设备选择 standard；限制 HOME 声明的固件选择 guard。
-- 使用 ADB 安装时，Android 9–11 选择 api28.dm，Android 12+ 选择 api31.dm。把它重命名为与 APK 相同的文件名，再一同安装，例如：
+- 本轮 standard／guard 测试包都不声明 HOME，不注册为默认桌面候选。开机、守护、复活、配置接管和系统屏保组件均禁用。
+- 不授予 WRITE_SECURE_SETTINGS、悬浮窗、系统设置写入或开机权限；不使用正式安装脚本，不切换默认桌面，不开启测试版无障碍服务。
+- 使用公开测试证书，仅能更新之前独立包名的测试版，不能覆盖正式版。测试偏好、缓存、隐藏记录与正式版隔离；手机页端口为8791。
+- 推荐下载 APK 和 `install-topshelf-test.sh` 到同一目录，设置好设备连接后运行：
 
 ```sh
-cp aerial-topshelf-standard-api31.dm aerial-topshelf-standard.dm
-adb install-multiple -r aerial-topshelf-standard.apk aerial-topshelf-standard.dm
+bash install-topshelf-test.sh aerial-topshelf-standard.apk
+# 多设备时：TV=设备序列号 bash install-topshelf-test.sh aerial-topshelf-standard.apk
 ```
 
-Android 8 及以下仅安装 APK。初版建议先从原桌面打开测试 App，验证内容；需要正式试用 HOME 接管时再按项目安装说明设置默认桌面／守护，避免两个桌面守护同时运行。
+脚本要求本机 adb、apkanalyzer 和 unzip；先核对测试包身份，再安装 APK 自带的匹配 DM，只申请测试包电视节目读取权限，比较安装前后 HOME 和无障碍列表，最后手动打开测试版。Android 9–11 使用 api28.dm，12+ 使用 api31.dm，旧版仅装 APK。
 
-## 功能和操作
-
-- Android 8.0+ 且存在系统 TvProvider 时，读取授权后可见的 Watch Next 和 Preview Programs。
-- 首次打开会申请电视节目读取权限。也可以使用：
+也可手工安装 APK（Android 9+ 建议连同同名 DM 使用 install-multiple），然后：
 
 ```sh
 adb shell pm grant app.orchard.tv.topshelf android.permission.READ_TV_LISTINGS
+adb shell am start -n app.orchard.tv.topshelf/app.orchard.tv.MainActivity
 ```
 
-- 测试包默认打开 Top Shelf。在「个性化 → 主屏幕布局 → 顶部内容」可以关闭；拒绝授权后，关闭并重新开启可再次申请权限。
-- 推荐单排布局。首排应用聚焦停留 250 毫秒后，有内容才显示上方卡片；无内容恢复原桌面。双排布局使用紧凑卡片。
-- 应用上按上键进入内容；左右选片；确认打开应用提供的链接；下键或返回回到来源应用。
-- 内容上按上键进入分类；分类左右切换继续观看／推荐；下键回内容，再按上键可进右上状态区。
-- 应用图标的确认、长按及往下进入应用网格保持原有行为。儿童／长辈模式关闭此功能。
-- 内容变化或从播放应用回到桌面后重新读取；按包名分组、去重、每类最多 20 条。
+按 HOME 应返回现有正常桌面。如果原桌面守护阻止测试版出现，记录阻塞；不得关闭、修改正式版守护。不要把此包设为默认桌面，不要运行 tools/install.sh。
 
-## 验收
+## 本轮内容
 
-1. 授权后在应用里播放一段内容，返回测试桌面，聚焦它的首排图标，检查标题、封面、进度是否出现。
-2. 快速左右切换应用，确认内容不串应用；工具／设置等无内容应用不显示空白面板。
-3. 上键进入卡片，左右选片，确认验证内容链接；分别记录直接续播、详情页、登录／选用户页的结果。
-4. 下键／返回回来源图标，不能直接进入屏保；长按方向键不能一次跨越多个焦点层。
-5. 打开控制中心、应用菜单、屏保以及儿童模式，再退出，检查焦点和原有行为。
-6. 断网、撤销权限、卸载来源应用后不得崩溃。缺失封面显示文字占位。
+真实可见的继续观看／下一集／新一集／待看和推荐混合轨道；季集、剩余时间和频道名称；本地隐藏与按应用关闭；个性化中恢复全部隐藏条目和关闭的应用。
 
-## 限制与诊断
+封面按目标尺寸后台处理连续圆角与暗角，内存12MiB、磁盘48MiB、3天TTL、下载并发2。图片失败仍保留文字。支持应用切换溶解、时钟淡变、焦点外框、弹簧滚动和边界回弹。
 
-Watch Next 不是完整播放历史。应用必须主动发布对第三方可见的条目；推荐是另一套数据。Netflix、Disney+、YouTube、Emby 等均未在本版本真机验证，不能仅凭应用名承诺支持。链接可能只到详情页、登录或选用户页，能否直接续播由提供方决定。
+## 遥控器
 
-原生 Android 8 以下、缺少 TvProvider 的固件、未授权或无可见条目时保留原桌面。Lite 不在本次范围内。不使用 Root，也不申请系统特权 EPG 权限。
+首排有内容的应用停留180ms显示展架，上键进入；左右选片、确认打开；卡片上键直达状态栏，状态栏下键返回刚才卡片；下键／返回回到来源应用。菜单键或长按确认打开操作菜单。原磁贴确认仍打开应用首页。建议单排布局，双排自动压缩卡片。
 
-诊断日志 tag `AerialDiag` 的 `top shelf:` 行包含可见应用数、条目数或访问失败类型，不记录标题、封面或播放链接。`READ_TV_LISTINGS` 需要授予读取应用，直接在 ADB shell 查询得到空结果不能证明应用没有发布数据。
+## 必须记录的真机结果
+
+1. 安装前后的 HOME 解析结果、enabled_accessibility_services、screensaver_components、dreams_enabled、正式包版本及开机配置，全部保持一致。
+2. 原应用确实发布可见条目后，逐个记录封面、标题、类型、进度与深链落点。不能只凭应用名称认定支持。
+3. 遥控器全部路径、长按抬键不误触、快速换应用、记录更新／删除、本地隐藏重启保持与恢复。
+4. 断网、撤权、低内存、静态／动态壁纸、不同布局和4K UI；帧时和掉帧与同机基准比较。
+5. 按 HOME 后的焦点应属于原正常桌面。无法连接或原守护阻挡时，明确记录“待验收”，不能宣称通过。
+
+Watch Next不是完整观看历史，深链也不保证直接续播。多账号快照、自动选人和PIN未实现，详见SPEC.md的独立实验提案。诊断tag为AerialDiag，top shelf行只记录条目数量与错误类型。
 
 ## CI
 
-推送 `feature/top-shelf` 自动执行 standard／guard 的 release 单测、lint 和 APK 构建。检查通过后创建独立的 `topshelf-test-<run number>` 预发布 Release（不标为 Latest），附带两个 APK、dex metadata、校验和、混淆映射及本文档。Pull Request 只检查和上传构建产物，不发布 Release。
-
-单测使用原包名运行，以保留官方升级流程的测试约束；随后以独立包名执行 lint 和打包，并验证 APK 元数据中的包名与版本号。`app/lint-baseline.xml` 精确记录上游已有的 RestrictedApi、Media3 opt-in、旧广播和 Manifest 合并检查问题，不屏蔽新增 lint 错误，也不屏蔽 NewApi 检查。
+feature/top-shelf 每次推送自动运行两种release单测、lint、优化构建、测试包身份与无接管Manifest校验，成功后发布新的独立prerelease，不成为Latest。原有lint问题由精确基线记录，新增错误和NewApi仍阻止发布。

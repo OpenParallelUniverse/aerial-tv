@@ -17,6 +17,7 @@ import android.provider.Settings
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import android.util.Log
+import app.orchard.tv.BuildConfig
 import app.orchard.tv.MainActivity
 import app.orchard.tv.dream.AerialDream
 import app.orchard.tv.system.DiagLog
@@ -436,6 +437,7 @@ object GuardSetup {
      * makes Android bind it again.
      */
     fun rebindIfStalled(context: Context) {
+        if (BuildConfig.TOP_SHELF_TEST) return
         if (HomeGuardService.isRunning) return
         rescanIfMissing(context)
         if (standingOut(context)) { watchScreenOn(context); return }
@@ -522,6 +524,7 @@ object GuardSetup {
      * player, since the firmware opens that without Aerial's activity ever running.
      */
     fun rebindForJmgoKeys(context: Context) {
+        if (BuildConfig.TOP_SHELF_TEST) return
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) return
         if (runCatching { context.packageManager.getPackageInfo(JMGO_KEY_SERVICE_PACKAGE, 0) }.isFailure) return
         val resolved = runCatching {
@@ -684,6 +687,7 @@ object GuardSetup {
     }
 
     fun ensureEnabled(context: Context): Boolean {
+        if (BuildConfig.TOP_SHELF_TEST) return false
         ensureAdb(context)
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_SECURE_SETTINGS) != PackageManager.PERMISSION_GRANTED) return false
         restoreReceivers(context)

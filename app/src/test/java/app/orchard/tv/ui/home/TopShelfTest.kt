@@ -39,6 +39,7 @@ class TopShelfTest {
     private val app = FocusRequester()
     private var opened: String? = null
     private var returned = 0
+    private var up = 0
     private var rows by mutableStateOf(listOf(program("one"), program("two"), program("rec", ShelfKind.Recommend)))
 
     @After fun close() { compose.runOnUiThread { host?.close() } }
@@ -53,7 +54,7 @@ class TopShelfTest {
                 view = LocalView.current
                 Box(Modifier.size(960.dp, 540.dp)) {
                     TopShelf("test.player", "Player", rows, navigation, 150.dp,
-                        onFocus = {}, onDown = { returned++; app.requestFocus() }, onUp = {},
+                        onFocus = {}, onDown = { returned++; app.requestFocus() }, onUp = { up++; app.requestFocus() },
                         onOpen = { opened = it.id })
                     Pressable({}, focusRequester = app, modifier = Modifier.align(Alignment.BottomStart)) {
                         BasicText("Source app")
@@ -90,11 +91,17 @@ class TopShelfTest {
         assertEquals("two", opened)
     }
 
-    @Test fun remoteSwitchesFromContinueToRecommendations() {
+    @Test fun remoteReachesRecommendationsAndReturnsFromStatusToSelectedCard() {
         mount()
-        tap(KeyEvent.KEYCODE_DPAD_UP)
         tap(KeyEvent.KEYCODE_DPAD_RIGHT)
-        tap(KeyEvent.KEYCODE_DPAD_DOWN)
+        tap(KeyEvent.KEYCODE_DPAD_RIGHT)
+        tap(KeyEvent.KEYCODE_DPAD_CENTER)
+        assertEquals("rec", opened)
+        tap(KeyEvent.KEYCODE_DPAD_UP)
+        assertEquals(1, up)
+        compose.runOnUiThread { navigation.enter!!.invoke() }
+        settle()
+        opened = null
         tap(KeyEvent.KEYCODE_DPAD_CENTER)
         assertEquals("rec", opened)
     }

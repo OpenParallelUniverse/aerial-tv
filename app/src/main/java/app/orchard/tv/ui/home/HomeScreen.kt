@@ -8,6 +8,8 @@ import android.view.KeyEvent as NativeKeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -322,6 +324,7 @@ fun HomeScreen(
     val gridEnabled = overlay == Overlay.None && kidsLock == null
 
     val shelfNavigation = remember { ShelfNavigation() }
+    var shelfTransitionKey by remember { mutableStateOf<Int?>(null) }
     var shelfFocused by remember { mutableStateOf(false) }
     val shelfApp = apps.getOrNull(focusedIndex)?.takeIf {
         focusedRow == 0 && it.source == null && it.folder == null && it.shortcut == null
@@ -330,8 +333,7 @@ fun HomeScreen(
     // be painted under a different app, because the source map is indexed by package name.
     var shelfPackage by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(shelfApp?.packageName) {
-        shelfPackage = null
-        delay(250)
+        delay(180)
         shelfPackage = shelfApp?.packageName
     }
     val shelfEnabled = AerialSettings.topShelf && !Restricted.active
@@ -347,12 +349,19 @@ fun HomeScreen(
         vm.topShelf.watch(shelfEnabled && vm.resumed)
         onDispose { vm.topShelf.watch(false) }
     }
+    var lastShelfPackage by remember { mutableStateOf<String?>(null) }
+    val hasCandidate = !shelfPackage?.let { vm.topShelf.programs[it] }.isNullOrEmpty()
+    LaunchedEffect(shelfPackage, hasCandidate) { if (hasCandidate) lastShelfPackage = shelfPackage }
+    val displayPackage = if (hasCandidate) shelfPackage else lastShelfPackage
+    val shelfDisplayApp = apps.firstOrNull { it.packageName == displayPackage }
     val shelfPrograms = shelfPackage?.let { vm.topShelf.programs[it] }.orEmpty()
-    val shelfVisible = shelfEnabled && shelfPrograms.isNotEmpty() && shelfApp?.packageName == shelfPackage &&
-        overlay == Overlay.None && moving == null && !pillFocused && !vm.screensaverVisible
+    val shelfVisible = shelfEnabled && hasCandidate && shelfPrograms.isNotEmpty() && shelfApp != null && shelfDisplayApp != null &&
+        overlay == Overlay.None && moving == null && !vm.screensaverVisible
+    val clockShelfAlpha by animateFloatAsState(if (shelfVisible) 0f else 1f,
+        if (reduced) snap() else tween(if (shelfVisible) 220 else 260, easing = Motion.EaseOut), label = "shelf-clock")
     val shelfAlpha by animateFloatAsState(
         if (shelfVisible) 1f else 0f,
-        if (reduced) snap() else tween(180, easing = Motion.EaseOut), label = "top-shelf",
+        if (reduced) snap() else spring(dampingRatio = 1f, stiffness = 340f), label = "top-shelf",
     )
 
     // The aerial wallpaper's film, and how far it shows through.
@@ -532,10 +541,26 @@ fun HomeScreen(
         Modifier
             .fillMaxSize()
             .onPreviewKeyEvent { e ->
+                val shelfCode = e.nativeKeyEvent.keyCode
+                if (shelfTransitionKey == shelfCode) {
+                    if (e.type == KeyEventType.KeyUp) shelfTransitionKey = null
+                    return@onPreviewKeyEvent true
+                }
+                if (shelfCode == NativeKeyEvent.KEYCODE_DPAD_DOWN && pillFocused && shelfVisible && shelfNavigation.enter != null) {
+                    if (e.type == KeyEventType.KeyDown && e.nativeKeyEvent.repeatCount == 0) {
+                        shelfTransitionKey = shelfCode
+                        pillFocused = false
+                        shelfNavigation.enter?.invoke()
+                    }
+                    return@onPreviewKeyEvent true
+                }
                 if (e.nativeKeyEvent.keyCode == NativeKeyEvent.KEYCODE_DPAD_UP &&
-                    shelfVisible && !shelfFocused && focusedRow == 0 && !pillFocused &&
+                    shelfVisible && shelfApp?.packageName == shelfPackage && !shelfFocused && focusedRow == 0 && !pillFocused &&
                     shelfNavigation.enter != null) {
-                    if (e.type == KeyEventType.KeyDown && e.nativeKeyEvent.repeatCount == 0) shelfNavigation.enter?.invoke()
+                    if (e.type == KeyEventType.KeyDown && e.nativeKeyEvent.repeatCount == 0) {
+                        shelfTransitionKey = shelfCode
+                        shelfNavigation.enter?.invoke()
+                    }
                     return@onPreviewKeyEvent true
                 }
                 // The remote takes the grid back from the finger: scroll follows focus again.
@@ -808,7 +833,7 @@ fun HomeScreen(
                 val clockRight = AerialSettings.clockRight
                 // The large clock stands over the top row; the small one is the time and weather in
                 // one line, top left or beside the pill, so the wallpaper keeps the screen.
-                if (AerialSettings.largeClock && !shelfVisible) {
+                if (AerialSettings.largeClock) {
                     ShelfClock(
                         now = now,
                         alignEnd = clockRight,
@@ -820,21 +845,21 @@ fun HomeScreen(
                             // No offscreen buffer while it fades: it would be the clock's capBox, and the
                             // Chinese, the icon and the shadows above and below it were cut off (#727).
                             .graphicsLayer {
-                                alpha = 1f - (scroll.value / collapsePx * 1.6f).coerceIn(0f, 1f)
+                                alpha = clockShelfAlpha * (1f - (scroll.value / collapsePx * 1.6f).coerceIn(0f, 1f))
                                 compositingStrategy = CompositingStrategy.ModulateAlpha
                             },
                         toSaver = { clockToSaver.value },
                         saving = vm.screensaverVisible,
                         away = carrying,
                     )
-                } else if (!shelfVisible && !clockRight) {
+                } else if (!clockRight) {
                     CornerClock(
                         now = now,
                         modifier = Modifier
                             .diagLayer("clock")
                             .padding(start = metrics.margin, top = 28.dp)
                             .graphicsLayer {
-                                alpha = 1f - (scroll.value / collapsePx * 1.6f).coerceIn(0f, 1f)
+                                alpha = clockShelfAlpha * (1f - (scroll.value / collapsePx * 1.6f).coerceIn(0f, 1f))
                                 compositingStrategy = CompositingStrategy.ModulateAlpha
                             },
                         toSaver = { toSaver.value },
@@ -926,22 +951,33 @@ fun HomeScreen(
             }
         }
 
-        if (shelfVisible && shelfApp != null) key(shelfApp.packageName) {
-            TopShelf(
-                packageName = shelfApp.packageName,
-                label = shelfApp.label,
-                programs = shelfPrograms,
-                navigation = shelfNavigation,
-                cardHeight = (metrics.topRowY - 224.dp).coerceIn(32.dp, 160.dp),
-                onFocus = { shelfFocused = it },
-                onDown = ::leaveShelf,
-                onUp = { pillRequester.requestFocus() },
-                onOpen = { program -> program.launchIntent()?.let { intent ->
-                    onOpenProgram(intent)
-                } },
-                modifier = Modifier.padding(start = metrics.margin - 5.dp, end = metrics.margin, top = 82.dp)
-                    .graphicsLayer { alpha = shelfAlpha; translationY = (1f - shelfAlpha) * 10.dp.toPx() },
-            )
+        if ((shelfVisible || shelfAlpha > .001f) && shelfDisplayApp != null) {
+            AnimatedContent(
+                targetState = shelfDisplayApp.packageName,
+                transitionSpec = { fadeIn(tween(240, easing = Motion.EaseOut)) togetherWith fadeOut(tween(240, easing = Motion.EaseOut)) },
+                label = "shelf-source",
+            ) { pkg ->
+                val displayed = apps.firstOrNull { it.packageName == pkg }
+                val rows = vm.topShelf.programs[pkg].orEmpty()
+                val active = shelfVisible && pkg == shelfPackage && pkg == shelfApp?.packageName
+                if (displayed != null && rows.isNotEmpty()) TopShelf(
+                    packageName = pkg, label = displayed.label, programs = rows, navigation = shelfNavigation,
+                    cardHeight = (metrics.topRowY - 236.dp).coerceIn(32.dp, 110.dp),
+                    interactive = active,
+                    onFocus = { if (pkg == shelfPackage) shelfFocused = it },
+                    onDown = { shelfTransitionKey = NativeKeyEvent.KEYCODE_DPAD_DOWN; leaveShelf() },
+                    onUp = { shelfTransitionKey = NativeKeyEvent.KEYCODE_DPAD_UP; pillRequester.requestFocus() },
+                    onOpen = { program -> if (active) program.launchIntent()?.let(onOpenProgram) },
+                    onHide = { program ->
+                        vm.topShelf.hide(program)
+                        if (vm.topShelf.programs[pkg].isNullOrEmpty()) leaveShelf()
+                        else scope.launch { withFrameNanos { }; shelfNavigation.enter?.invoke() }
+                    },
+                    onDisable = { vm.topShelf.disable(pkg); leaveShelf() },
+                    modifier = Modifier.padding(start = metrics.margin - 20.dp, end = metrics.margin - 20.dp, top = 66.dp)
+                        .graphicsLayer { alpha = shelfAlpha; translationY = (1f - shelfAlpha) * 14.dp.toPx() },
+                )
+            }
         }
 
         homeShot?.let { shot -> Canvas(Modifier.fillMaxSize()) { drawImage(shot) } }
@@ -957,14 +993,14 @@ fun HomeScreen(
                 .graphicsLayer { alpha = if (overlay is Overlay.ControlCenter) 0f else 1f },
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (!shelfVisible && !AerialSettings.largeClock && AerialSettings.clockRight) {
+            if (!AerialSettings.largeClock && AerialSettings.clockRight) {
                 CornerClock(
                     now = now,
                     modifier = Modifier
                         .diagLayer("clock")
                         .padding(end = 14.dp)
                         .graphicsLayer {
-                            alpha = 1f - (scroll.value / collapsePx * 1.6f).coerceIn(0f, 1f)
+                            alpha = clockShelfAlpha * (1f - (scroll.value / collapsePx * 1.6f).coerceIn(0f, 1f))
                             compositingStrategy = CompositingStrategy.ModulateAlpha
                         },
                     toSaver = { toSaver.value },
@@ -1178,6 +1214,7 @@ fun HomeScreen(
         )
 
         WallpaperSheet(
+            onRestoreTopShelf = { vm.topShelf.restore() },
             visible = overlay is Overlay.Wallpaper,
             onSettled = { sheetIn = it },
             warm = sheetWarm,

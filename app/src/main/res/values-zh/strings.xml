@@ -334,4 +334,14 @@
     <string name="ts_up_hint">↑ 选择内容</string>
     <string name="ts_progress">已观看 %1$d%%</string>
     <string name="ts_test_app_name">Aerial Top Shelf 测试版</string>
+    <string name="ts_play">播放</string>
+    <string name="ts_hide">在 Aerial 中隐藏</string>
+    <string name="ts_disable_app">关闭此应用的顶部预览</string>
+    <string name="ts_restore">恢复顶部内容</string>
+    <string name="ts_restore_hint">恢复隐藏的条目和按应用关闭的顶部预览。</string>
+    <string name="ts_next">下一集</string>
+    <string name="ts_new">新一集</string>
+    <string name="ts_watchlist">待看</string>
+    <string name="ts_episode">第 %1$s 集</string>
+    <string name="ts_remaining">剩余 %1$d 分钟</string>
 </resources>

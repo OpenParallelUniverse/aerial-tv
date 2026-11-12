@@ -57,6 +57,7 @@
     <!-- Android 11 package visibility for the Skyworth/Coocaa source API: the TV's SDK provider
          lists the ports and its TV activity opens one (SystemProbe.skyworthSources). -->
     <queries>
+        <provider android:authorities="android.media.tv" />
         <package android:name="com.skyworth.tv" />
         <provider android:authorities="com.skyworth.tv.sdk.provider" />
         <!-- SystemProbe.coocaaInputPanel: coocaaInputPanel asks whether Coocaa's Quick Panel
@@ -129,6 +130,7 @@
 
         <receiver
             android:name=".guard.BootReceiver"
+            android:enabled="${homeIntegrationEnabled}"
             android:directBootAware="true"
             android:exported="true">
             <intent-filter>
@@ -139,6 +141,7 @@
 
         <service
             android:name=".dream.AerialDream"
+            android:enabled="${homeIntegrationEnabled}"
             android:label="@string/app_name"
             android:exported="true"
             android:permission="android.permission.BIND_DREAM_SERVICE">
@@ -154,6 +157,7 @@
 
         <receiver
             android:name=".guard.ConfigReceiver"
+            android:enabled="${homeIntegrationEnabled}"
             android:exported="true"
             android:permission="android.permission.WRITE_SECURE_SETTINGS">
             <intent-filter>
@@ -163,6 +167,7 @@
 
         <service
             android:name=".guard.RevivalListener"
+            android:enabled="${homeIntegrationEnabled}"
             android:directBootAware="true"
             android:label="@string/guard_name"
             android:exported="true"
@@ -174,6 +179,7 @@
 
         <service
             android:name=".guard.RevivalSyncService"
+            android:enabled="${homeIntegrationEnabled}"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
@@ -185,6 +191,7 @@
 
         <service
             android:name=".guard.RevivalAccountService"
+            android:enabled="${homeIntegrationEnabled}"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
@@ -196,6 +203,7 @@
 
         <service
             android:name=".guard.HomeGuardService"
+            android:enabled="${homeIntegrationEnabled}"
             android:directBootAware="true"
             android:label="@string/guard_name"
             android:exported="true"

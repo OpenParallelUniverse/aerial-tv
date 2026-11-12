@@ -407,7 +407,7 @@ private fun MainPage(
         }
 
         // Installed from the APK alone: how to finish, on the TV or with a computer.
-        if (vm.homeStatus == HomeStatus.NotDefault) {
+        if (vm.homeStatus == HomeStatus.NotDefault && !app.orchard.tv.BuildConfig.TOP_SHELF_TEST) {
             MenuRow(Glyph.Shield, stringResource(R.string.cc_setup_title), onClick = { vm.overlay = Overlay.ControlCenter(CcPage.Setup) }, trailing = "›")
         }
 

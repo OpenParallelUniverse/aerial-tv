@@ -50,6 +50,7 @@ jobs:
             :app:assembleStandardRelease :app:assembleGuardRelease
       - name: Package test downloads
         run: |
+          python3 tools/verify-topshelf-test.py "$((100000 + GITHUB_RUN_NUMBER))"
           mkdir -p dist
           for variant in standard guard; do
             apk="app/build/outputs/apk/$variant/release/app-$variant-release.apk"
@@ -63,6 +64,8 @@ jobs:
             cp "app/build/outputs/mapping/${variant}Release/mapping.txt" "dist/mapping-$variant.txt"
           done
           cp docs/TOP_SHELF_TEST.md dist/TESTING.md
+          cp docs/TOP_SHELF_SPEC.md dist/SPEC.md
+          cp tools/install-topshelf-test.sh dist/install-topshelf-test.sh
           (cd dist && sha256sum *.apk *.dm > SHA256SUMS)
       - uses: actions/upload-artifact@v4
         with:

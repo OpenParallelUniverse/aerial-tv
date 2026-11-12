@@ -13,6 +13,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.DisposableEffect
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -71,12 +76,18 @@ fun Pressable(
     focusRequester: FocusRequester? = null,
     focusedScale: Float = 1.06f,
     onKey: ((KeyEvent) -> Boolean)? = null,
+    onLongPress: (() -> Unit)? = null,
     content: @Composable BoxScope.(PressState) -> Unit,
 ) {
     val state = remember { PressState() }
     val ownRequester = remember { FocusRequester() }
     val requester = focusRequester ?: ownRequester
     val click by rememberUpdatedState(onClick)
+    val longClick by rememberUpdatedState(onLongPress)
+    val scope = rememberCoroutineScope()
+    var hold by remember { mutableStateOf<Job?>(null) }
+    var longFired by remember { mutableStateOf(false) }
+    DisposableEffect(Unit) { onDispose { hold?.cancel() } }
     val reduced = LocalReducedMotion.current
     val scale by animateFloatAsState(
         targetValue = when {
@@ -95,13 +106,15 @@ fun Pressable(
                 if (it.isFocused && !state.focused) Sounds.focusMoved()
                 state.focused = it.isFocused
                 if (!it.isFocused) {
+                    hold?.cancel()
                     state.pressed = false
                     state.byKey = false
                 }
             }
-            .pointerInput(enabled) {
+            .pointerInput(enabled, onLongPress != null) {
                 if (!enabled) return@pointerInput
                 detectTapGestures(
+                    onLongPress = if (onLongPress != null) ({ longClick?.invoke() }) else null,
                     onPress = {
                         state.pressed = true
                         tryAwaitRelease()
@@ -120,13 +133,24 @@ fun Pressable(
                 when (e.type) {
                     KeyEventType.KeyDown -> {
                         if (e.nativeKeyEvent.repeatCount == 0) {
+                            longFired = false
                             state.pressed = true
                             state.byKey = true
+                            hold?.cancel()
+                            if (longClick != null) hold = scope.launch {
+                                delay(550)
+                                if (state.pressed && state.byKey) {
+                                    longFired = true
+                                    state.pressed = false
+                                    longClick?.invoke()
+                                }
+                            }
                         }
                         true
                     }
                     KeyEventType.KeyUp -> {
-                        val was = state.pressed && state.byKey
+                        hold?.cancel()
+                        val was = state.pressed && state.byKey && !longFired
                         state.pressed = false
                         state.byKey = false
                         if (was) {

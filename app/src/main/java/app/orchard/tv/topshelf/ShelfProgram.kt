@@ -15,7 +15,16 @@ data class ShelfProgram(
     val durationMs: Long = 0,
     val engagementTime: Long = 0,
     val weight: Int = 0,
+    val watchNextType: Int = 0,
+    val season: String? = null,
+    val episode: String? = null,
+    val episodeTitle: String? = null,
+    val description: String? = null,
+    val channelName: String? = null,
+    val contentId: String? = null,
 ) {
+    val stableKey: String get() = packageName + ":" + kind.name + ":" + (contentId?.takeIf { it.isNotBlank() } ?: intentUri)
+    val remainingMinutes: Long? get() = if (durationMs > positionMs && positionMs > 0) (durationMs - positionMs + 59_999) / 60_000 else null
     val progress: Float? get() = if (durationMs > 0 && positionMs > 0)
         (positionMs.toDouble() / durationMs).coerceIn(0.0, 1.0).toFloat() else null
 

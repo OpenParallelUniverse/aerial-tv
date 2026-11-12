@@ -335,4 +335,14 @@
     <string name="ts_up_hint">↑ Browse content</string>
     <string name="ts_progress">Watched %1$d%%</string>
     <string name="ts_test_app_name">Aerial Top Shelf Test</string>
+    <string name="ts_play">Play</string>
+    <string name="ts_hide">Hide in Aerial</string>
+    <string name="ts_disable_app">Turn off previews for this app</string>
+    <string name="ts_restore">Restore previews</string>
+    <string name="ts_restore_hint">Restore hidden items and previews disabled for individual apps.</string>
+    <string name="ts_next">Next episode</string>
+    <string name="ts_new">New episode</string>
+    <string name="ts_watchlist">Watchlist</string>
+    <string name="ts_episode">Episode %1$s</string>
+    <string name="ts_remaining">%1$d min left</string>
 </resources>

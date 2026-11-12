@@ -233,6 +233,7 @@ class MainActivity : ComponentActivity() {
      * 100P6E, Android 13, with persist.service.model.* set to Aerial; issue #1278, the reporter's log).
      */
     private fun reopenAsHome(): Boolean {
+        if (BuildConfig.TOP_SHELF_TEST) return false
         val started = intent ?: return false
         if (started.action != null && started.action != Intent.ACTION_MAIN) return false
         if (started.hasCategory(Intent.CATEGORY_HOME) || !isTaskRoot) return false
@@ -276,14 +277,14 @@ class MainActivity : ComponentActivity() {
         Wallpapers.fitScreen(this)
         Weather.init(this)
         Updates.init(this)
-        lifecycleScope.launch(Dispatchers.IO) { SelfCompile.init(this@MainActivity) }
+        if (!BuildConfig.TOP_SHELF_TEST) lifecycleScope.launch(Dispatchers.IO) { SelfCompile.init(this@MainActivity) }
         CustomIcons.init(this)
         IconLibrary.init(this)
         SourceLooks.init(this)
         AppNames.init(this)
         AerialSettings.init(this)
         Restricted.init(this)
-        KidsWatch.start(this)
+        if (!BuildConfig.TOP_SHELF_TEST) KidsWatch.start(this)
         // After the settings: the artwork's size follows the number of apps a row.
         TileArtFactory.useCanvasDensity(canvasDensity(resources.displayMetrics) * uhd)
         Sounds.init(this)
@@ -396,6 +397,7 @@ class MainActivity : ComponentActivity() {
         DiagLog.i("trim memory, level $level")
         Wallpapers.trimMemory()
         TileFaces.trimMemory()
+        app.orchard.tv.topshelf.ShelfImages.trimMemory()
     }
 
     override fun onDestroy() {
@@ -445,6 +447,7 @@ class MainActivity : ComponentActivity() {
      */
     /** [again]: the target was opened and then covered at once (Home Guard's EXTRA_REOPEN_BOOT). */
     private fun openBootSource(reason: String, again: Boolean = false) {
+        if (BuildConfig.TOP_SHELF_TEST) return
         val id = AerialSettings.bootSource
         val pkg = AerialSettings.bootApp
         if (id == null && pkg == null) return
@@ -946,7 +949,7 @@ class MainActivity : ComponentActivity() {
     /** What onStart does once the user is unlocked; also run by a start that was locked before. */
     private fun startWork() {
         DiagLog.i("onStart")
-        SelfCompile.onHomeStarted(this)
+        if (!BuildConfig.TOP_SHELF_TEST) SelfCompile.onHomeStarted(this)
         // The phone and computer page, at any time the TV is on (only once unlocked: its token is
         // in credential-protected storage).
         lifecycleScope.launch(Dispatchers.IO) { PhoneServer.listen(this@MainActivity) }

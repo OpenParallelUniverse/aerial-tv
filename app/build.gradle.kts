@@ -23,6 +23,7 @@ android {
         versionName = "1.95"
         val topShelfTest = project.hasProperty("topShelfTest")
         buildConfigField("boolean", "TOP_SHELF_TEST", topShelfTest.toString())
+        manifestPlaceholders["homeIntegrationEnabled"] = (!topShelfTest).toString()
         manifestPlaceholders["appLabel"] = if (topShelfTest) "@string/ts_test_app_name" else "@string/app_name"
         if (topShelfTest) {
             applicationIdSuffix = ".topshelf"
@@ -55,6 +56,11 @@ android {
             dimension = "home"
             versionNameSuffix = "-guard"
         }
+    }
+
+    if (project.hasProperty("topShelfTest")) {
+        sourceSets.getByName("standard").manifest.srcFile("src/topshelfTest/AndroidManifest.xml")
+        sourceSets.getByName("guard").manifest.srcFile("src/topshelfTest/AndroidManifest.xml")
     }
 
     // The TVs only accept updates signed with the key Aerial was first installed with. That key
