@@ -19,9 +19,13 @@ snapshot() {
   done
   "${TASK_ADB[@]}" shell getprop persist.vt.use_home_pkg
   "${TASK_ADB[@]}" shell getprop persist.sys.launcher.component
-  "${TASK_ADB[@]}" shell 'dumpsys package app.orchard.tv | grep -E "versionCode=|versionName="'
+  "${TASK_ADB[@]}" shell 'dumpsys package app.orchard.tv | grep -E "versionCode=|versionName=" || true'
 }
 TASK_BEFORE=$(snapshot | tr -d '\r')
+if [[ "$TASK_BEFORE" == *"$TASK_PKG"* ]]; then
+  echo 'Previous test package is configured as HOME, a service or a startup target; stop before updating it.' >&2
+  exit 1
+fi
 TASK_SDK=$("${TASK_ADB[@]}" shell getprop ro.build.version.sdk | tr -d '\r')
 # Verify the artifact locally before installation; apkanalyzer is part of Android SDK tools.
 command -v apkanalyzer >/dev/null || { echo 'apkanalyzer is required to verify the test package before installation.' >&2; exit 1; }

@@ -189,7 +189,7 @@ private fun ShelfCard(
         program.posterUri?.let { value = ShelfImages.load(context, it, w, h)?.asImageBitmap() }
     }
     val decorations by produceState<Pair<TileShadow, RingFrame>?>(null, w, h, density) {
-        value = withContext(Dispatchers.Default) { tileShadow(w, h, 12 * density, 14 * density) to ringFrame(w, h, 12 * density, 4 * density, 2.5f * density, density) }
+        value = withContext(Dispatchers.Default) { tileShadow(w, h, w * 12f / 196f, 14 * density) to ringFrame(w, h, w * 12f / 196f, 4 * density, 2.5f * density, density) }
     }
     fun nudge(sign: Float) { if (!reduced) scope.launch {
         push.snapTo(sign)
@@ -205,7 +205,7 @@ private fun ShelfCard(
             if (state.focused && !AerialSettings.lite) decorations?.first?.let { shadow ->
                 translate(-shadow.ext, -shadow.ext + 10 * density) { drawImage(shadow.image) }
             }
-            if (picture == null) drawRoundRect(Palette.Glass, cornerRadius = CornerRadius(12 * density))
+            if (picture == null) drawRoundRect(Palette.Glass, cornerRadius = CornerRadius(w * 12f / 196f))
             picture?.let { drawImage(it) }
             if (program.kind == ShelfKind.Continue && program.durationMs > 0) {
                 val bar = 3 * density; val pad = 10 * density
