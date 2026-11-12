@@ -39,10 +39,13 @@ jobs:
         run: |
           mkdir -p "$HOME/.android"
           base64 --decode .github/test-signing/test.keystore.b64 > "$HOME/.android/debug.keystore"
-      - name: Test, lint and build release APKs
+      - name: Test release code with the original package identity
+        run: |
+          gradle --no-daemon --max-workers=2 \
+            :app:testStandardReleaseUnitTest :app:testGuardReleaseUnitTest
+      - name: Lint and build isolated test release APKs
         run: |
           gradle --no-daemon --max-workers=2 -PtopShelfTest -PtestVersionCode="$((100000 + GITHUB_RUN_NUMBER))" \
-            :app:testStandardReleaseUnitTest :app:testGuardReleaseUnitTest \
             :app:lintStandardRelease :app:lintGuardRelease \
             :app:assembleStandardRelease :app:assembleGuardRelease
       - name: Package test downloads
@@ -79,4 +82,5 @@ jobs:
           path: |
             app/build/reports/tests/
             app/build/reports/lint-results-*.html
+            app/build/test-results/
           if-no-files-found: ignore
