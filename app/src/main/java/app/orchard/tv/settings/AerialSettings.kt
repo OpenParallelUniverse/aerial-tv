@@ -9,6 +9,7 @@ import androidx.core.content.edit
 import android.os.SystemClock
 import android.provider.Settings
 import app.orchard.tv.apps.IconLibrary
+import app.orchard.tv.BuildConfig
 import app.orchard.tv.guard.GuardSetup
 import app.orchard.tv.system.DeviceClass
 import app.orchard.tv.wallpaper.AerialQuality
@@ -113,6 +114,8 @@ object AerialSettings {
      * as tvOS does under a full-screen top shelf. The rest of the grid is one press down.
      */
     var oneRowHome by mutableStateOf(true); private set
+
+    var topShelf by mutableStateOf(false); private set
 
     /**
      * Apps a row on Home: [HOME_COLUMNS], five by default as Aerial always had, six as tvOS 26 lays
@@ -247,6 +250,7 @@ object AerialSettings {
         pinSet = pinHash != null
         pinArrows = prefs.getBoolean("pin_arrows", false)
         oneRowHome = prefs.getBoolean("one_row_home", true)
+        topShelf = prefs.getBoolean("top_shelf", BuildConfig.TOP_SHELF_TEST)
         peekNextRow = prefs.getBoolean("peek_next_row", true)
         chosenColumns = prefs.getInt("home_columns", DEFAULT_HOME_COLUMNS).takeIf { it in HOME_COLUMNS } ?: DEFAULT_HOME_COLUMNS
         clockRight = prefs.getBoolean("clock_right", false)
@@ -317,6 +321,11 @@ object AerialSettings {
     fun chooseOneRowHome(on: Boolean) {
         oneRowHome = on
         app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putBoolean("one_row_home", on) }
+    }
+
+    fun chooseTopShelf(on: Boolean) {
+        topShelf = on
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { putBoolean("top_shelf", on) }
     }
 
     fun chooseHomeColumns(columns: Int) {

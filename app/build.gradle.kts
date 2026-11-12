@@ -21,6 +21,14 @@ android {
         targetSdk = 34
         versionCode = 135
         versionName = "1.95"
+        val topShelfTest = project.hasProperty("topShelfTest")
+        buildConfigField("boolean", "TOP_SHELF_TEST", topShelfTest.toString())
+        manifestPlaceholders["appLabel"] = if (topShelfTest) "@string/ts_test_app_name" else "@string/app_name"
+        if (topShelfTest) {
+            applicationIdSuffix = ".topshelf"
+            versionNameSuffix = "-topshelf-test"
+            versionCode = providers.gradleProperty("testVersionCode").orNull?.toInt() ?: 100001
+        }
         // `./gradlew -Pdiag ...`: a build for one reporter's TV whose logcat shows no app lines;
         // see system/DiagLog.kt.
         val diag = project.hasProperty("diag")

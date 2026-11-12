@@ -6,6 +6,8 @@ import android.os.Build
 import android.os.SystemClock
 import android.view.KeyEvent as NativeKeyEvent
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -74,6 +76,7 @@ import app.orchard.tv.apps.SourceLooks
 import app.orchard.tv.HomeViewModel
 import app.orchard.tv.Overlay
 import app.orchard.tv.R
+import app.orchard.tv.topshelf.READ_TV_LISTINGS
 import app.orchard.tv.settings.AerialSettings
 import app.orchard.tv.settings.Restricted
 import app.orchard.tv.guard.KidsWatch
@@ -282,6 +285,7 @@ fun HomeScreen(
     vm: HomeViewModel,
     onLaunch: (AppEntry, Rect?) -> Unit,
     onOpen: (Intent) -> Unit,
+    onOpenProgram: (Intent) -> Unit,
     onAppInfo: (String) -> Unit,
     onUninstall: (String) -> Unit,
     onStartScreensaver: () -> Unit,
@@ -316,6 +320,36 @@ fun HomeScreen(
     // Kids mode's lock covers Home: nothing under it takes focus.
     val kidsLock = if (Restricted.active) Restricted.lock else null
     val gridEnabled = overlay == Overlay.None && kidsLock == null
+
+    val shelfNavigation = remember { ShelfNavigation() }
+    var shelfFocused by remember { mutableStateOf(false) }
+    val shelfApp = apps.getOrNull(focusedIndex)?.takeIf {
+        focusedRow == 0 && it.source == null && it.folder == null && it.shortcut == null
+    }
+    // Start with no content until the newly focused package has settled. A late result can never
+    // be painted under a different app, because the source map is indexed by package name.
+    var shelfPackage by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(shelfApp?.packageName) {
+        shelfPackage = null
+        delay(250)
+        shelfPackage = shelfApp?.packageName
+    }
+    val shelfEnabled = AerialSettings.topShelf && !Restricted.active
+    val permissionRequest = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        vm.topShelf.refresh()
+    }
+    LaunchedEffect(shelfEnabled) {
+        if (shelfEnabled && vm.topShelf.supported() && !vm.topShelf.permitted()) {
+            permissionRequest.launch(READ_TV_LISTINGS)
+        }
+    }
+    DisposableEffect(shelfEnabled, vm.resumed) {
+        vm.topShelf.watch(shelfEnabled && vm.resumed)
+        onDispose { vm.topShelf.watch(false) }
+    }
+    val shelfPrograms = shelfPackage?.let { vm.topShelf.programs[it] }.orEmpty()
+    val shelfVisible = shelfEnabled && shelfPrograms.isNotEmpty() && shelfApp?.packageName == shelfPackage &&
+        overlay == Overlay.None && moving == null && !pillFocused && !vm.screensaverVisible
 
     // The aerial wallpaper's film, and how far it shows through.
     val filmCover = remember { Animatable(0f) }
@@ -424,6 +458,18 @@ fun HomeScreen(
         runCatching { requester(app.key).requestFocus() }
     }
 
+    fun leaveShelf() {
+        shelfFocused = false
+        focusApp(focusedIndex.coerceAtLeast(0))
+    }
+
+    LaunchedEffect(shelfVisible) {
+        if (!shelfVisible && shelfFocused) {
+            if (overlay == Overlay.None && moving == null && !pillFocused && !vm.screensaverVisible) leaveShelf()
+            else shelfFocused = false
+        }
+    }
+
     // First focus once the apps are in; afterwards, put focus back wherever it was when an overlay closes.
     LaunchedEffect(vm.loaded, overlay) {
         if (!vm.loaded || overlay != Overlay.None) return@LaunchedEffect
@@ -473,7 +519,8 @@ fun HomeScreen(
         val scrolled = dragged && scroll.value > 1f
         dragged = false
         // Handled even when that is turned off: unhandled, Back would close Home itself.
-        if (focusedRow > 0 || scrolled) focusApp(focusedIndex.coerceAtLeast(0) % columns)
+        if (shelfFocused) leaveShelf()
+        else if (focusedRow > 0 || scrolled) focusApp(focusedIndex.coerceAtLeast(0) % columns)
         else if (AerialSettings.backStartsScreensaver) onStartScreensaver()
     }
 
@@ -481,6 +528,12 @@ fun HomeScreen(
         Modifier
             .fillMaxSize()
             .onPreviewKeyEvent { e ->
+                if (e.nativeKeyEvent.keyCode == NativeKeyEvent.KEYCODE_DPAD_UP &&
+                    shelfVisible && !shelfFocused && focusedRow == 0 && !pillFocused &&
+                    shelfNavigation.enter != null) {
+                    if (e.type == KeyEventType.KeyDown && e.nativeKeyEvent.repeatCount == 0) shelfNavigation.enter?.invoke()
+                    return@onPreviewKeyEvent true
+                }
                 // The remote takes the grid back from the finger: scroll follows focus again.
                 // Back leaves it to BackHandler, which needs to know the grid was dragged
                 // (gesture navigation sends Back as a key too).
@@ -751,7 +804,7 @@ fun HomeScreen(
                 val clockRight = AerialSettings.clockRight
                 // The large clock stands over the top row; the small one is the time and weather in
                 // one line, top left or beside the pill, so the wallpaper keeps the screen.
-                if (AerialSettings.largeClock) {
+                if (AerialSettings.largeClock && !shelfVisible) {
                     ShelfClock(
                         now = now,
                         alignEnd = clockRight,
@@ -770,7 +823,7 @@ fun HomeScreen(
                         saving = vm.screensaverVisible,
                         away = carrying,
                     )
-                } else if (!clockRight) {
+                } else if (!shelfVisible && !clockRight) {
                     CornerClock(
                         now = now,
                         modifier = Modifier
@@ -869,6 +922,23 @@ fun HomeScreen(
             }
         }
 
+        if (shelfVisible && shelfApp != null) key(shelfApp.packageName) {
+            TopShelf(
+                packageName = shelfApp.packageName,
+                label = shelfApp.label,
+                programs = shelfPrograms,
+                navigation = shelfNavigation,
+                cardHeight = (metrics.topRowY - 224.dp).coerceIn(32.dp, 160.dp),
+                onFocus = { shelfFocused = it },
+                onDown = ::leaveShelf,
+                onUp = { pillRequester.requestFocus() },
+                onOpen = { program -> program.launchIntent()?.let { intent ->
+                    onOpenProgram(intent)
+                } },
+                modifier = Modifier.padding(start = metrics.margin - 5.dp, end = metrics.margin, top = 82.dp),
+            )
+        }
+
         homeShot?.let { shot -> Canvas(Modifier.fillMaxSize()) { drawImage(shot) } }
         PanelBackdrop(Wallpapers.frosted.takeIf { Wallpapers.backdrop != null }, { backdropFrost }, { backdropVeil })
 
@@ -882,7 +952,7 @@ fun HomeScreen(
                 .graphicsLayer { alpha = if (overlay is Overlay.ControlCenter) 0f else 1f },
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (!AerialSettings.largeClock && AerialSettings.clockRight) {
+            if (!shelfVisible && !AerialSettings.largeClock && AerialSettings.clockRight) {
                 CornerClock(
                     now = now,
                     modifier = Modifier
@@ -899,7 +969,7 @@ fun HomeScreen(
             StatusPill(
                 now = now,
                 network = vm.network,
-                showTime = if (dragged) pastShelf else inGrid,
+                showTime = shelfVisible || if (dragged) pastShelf else inGrid,
                 enabled = gridEnabled && moving == null,
                 focusRequester = pillRequester,
                 modifier = Modifier

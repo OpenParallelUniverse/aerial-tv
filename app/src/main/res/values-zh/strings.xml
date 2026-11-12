@@ -323,4 +323,15 @@
     <string name="kids_blocked">「%s」不在这个模式里</string>
     <string name="kids_warn">还能看 %d 分钟</string>
     <string name="kids_warn_break">%d 分钟后休息一下</string>
+
+    <!-- Top Shelf -->
+    <string name="ts_setting">顶部内容</string>
+    <string name="ts_setting_hint">在选中的应用上方显示可用内容，需要电视节目读取授权。关闭后重新开启可再次申请权限，建议使用单排布局。</string>
+    <string name="ts_on">开启</string>
+    <string name="ts_off">关闭</string>
+    <string name="ts_continue">继续观看</string>
+    <string name="ts_recommend">推荐</string>
+    <string name="ts_up_hint">↑ 选择内容</string>
+    <string name="ts_progress">已观看 %1$d%%</string>
+    <string name="ts_test_app_name">Aerial Top Shelf 测试版</string>
 </resources>

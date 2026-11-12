@@ -1,0 +1,78 @@
+name: Top Shelf test release
+
+on:
+  push:
+    branches: [feature/top-shelf]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: top-shelf-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+      - name: Install Android SDK platform
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Restore public test certificate
+        run: |
+          mkdir -p "$HOME/.android"
+          base64 --decode .github/test-signing/test.keystore.b64 > "$HOME/.android/debug.keystore"
+      - name: Test, lint and build release APKs
+        run: |
+          gradle --no-daemon -PtopShelfTest -PtestVersionCode="$((100000 + GITHUB_RUN_NUMBER))" \
+            :app:testStandardReleaseUnitTest :app:testGuardReleaseUnitTest \
+            :app:lintStandardRelease :app:lintGuardRelease \
+            :app:assembleStandardRelease :app:assembleGuardRelease
+      - name: Package test downloads
+        run: |
+          mkdir -p dist
+          for variant in standard guard; do
+            apk="app/build/outputs/apk/$variant/release/app-$variant-release.apk"
+            cp "$apk" "dist/aerial-topshelf-$variant.apk"
+            for api in 28 31; do
+              unzip -p "$apk" "assets/aerial-dm/$api.dm" > "dist/aerial-topshelf-$variant-api$api.dm"
+            done
+            cp "app/build/outputs/mapping/${variant}Release/mapping.txt" "dist/mapping-$variant.txt"
+          done
+          cp docs/TOP_SHELF_TEST.md dist/TESTING.md
+          (cd dist && sha256sum *.apk *.dm > SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: top-shelf-release-${{ github.run_number }}
+          path: dist/
+          if-no-files-found: error
+      - name: Publish prerelease
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/feature/top-shelf'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="topshelf-test-${GITHUB_RUN_NUMBER}"
+          gh release create "$tag" dist/* --target "$GITHUB_SHA" --prerelease --latest=false \
+            --title "Aerial Top Shelf test ${GITHUB_RUN_NUMBER}" --notes-file docs/TOP_SHELF_TEST.md
+      - name: Upload verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: top-shelf-checks-${{ github.run_number }}
+          path: |
+            app/build/reports/tests/
+            app/build/reports/lint-results-*.html
+          if-no-files-found: ignore

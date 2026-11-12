@@ -36,6 +36,8 @@
     <uses-permission android:name="android.permission.WRITE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Optional Top Shelf reads public Watch Next and preview listings after user consent. -->
+    <uses-permission android:name="android.permission.READ_TV_LISTINGS" />
     <!-- Which app is in front, where a launcher hides from accessibility (Xiaomi PatchWall on
          Android 6, issue #81); granted over ADB. -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
@@ -73,7 +75,7 @@
     <!-- largeHeap: up to Android 7 bitmaps live on the Java heap, and LeTV X3-55 Pro (Android 5.0.1)
          ran out of it drawing Home (issue #328). -->
     <application
-        android:label="@string/app_name"
+        android:label="${appLabel}"
         android:icon="@mipmap/ic_launcher"
         android:banner="@drawable/banner"
         android:theme="@style/Theme.Aerial"

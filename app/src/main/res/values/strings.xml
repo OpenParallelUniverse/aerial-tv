@@ -324,4 +324,15 @@
     <string name="kids_blocked">%s is not allowed here</string>
     <string name="kids_warn">%d min of TV left</string>
     <string name="kids_warn_break">A break in %d min</string>
+
+    <!-- Top Shelf -->
+    <string name="ts_setting">Top Shelf</string>
+    <string name="ts_setting_hint">Show available content above the focused app. Requires TV listings permission. Turn off and on to request again. Single-row layout is recommended.</string>
+    <string name="ts_on">On</string>
+    <string name="ts_off">Off</string>
+    <string name="ts_continue">Continue watching</string>
+    <string name="ts_recommend">Recommended</string>
+    <string name="ts_up_hint">↑ Browse content</string>
+    <string name="ts_progress">Watched %1$d%%</string>
+    <string name="ts_test_app_name">Aerial Top Shelf Test</string>
 </resources>

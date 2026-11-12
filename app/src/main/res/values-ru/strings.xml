@@ -316,4 +316,15 @@
     <string name="kids_blocked">«%s» здесь недоступно</string>
     <string name="kids_warn">Осталось %d мин</string>
     <string name="kids_warn_break">Перерыв через %d мин</string>
+
+    <!-- Top Shelf -->
+    <string name="ts_setting">Верхняя полка</string>
+    <string name="ts_setting_hint">Показывать доступный контент выбранного приложения. Нужен доступ к телепрограммам. Выключите и включите для повторного запроса. Рекомендуется один ряд.</string>
+    <string name="ts_on">Вкл.</string>
+    <string name="ts_off">Выкл.</string>
+    <string name="ts_continue">Продолжить просмотр</string>
+    <string name="ts_recommend">Рекомендации</string>
+    <string name="ts_up_hint">↑ Выбрать контент</string>
+    <string name="ts_progress">Просмотрено %1$d%%</string>
+    <string name="ts_test_app_name">Aerial Top Shelf — тест</string>
 </resources>

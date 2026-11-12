@@ -324,6 +324,12 @@ class MainActivity : ComponentActivity() {
                     vm = vm,
                     onLaunch = ::launch,
                     onOpen = ::open,
+                    onOpenProgram = { intent ->
+                        if (!Restricted.active) {
+                            openedAppSinceHome = true
+                            open(intent)
+                        }
+                    },
                     onAppInfo = { open(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", it, null)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) },
                     onUninstall = { open(Intent(Intent.ACTION_DELETE, Uri.fromParts("package", it, null)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) },
                     // Posted so the key-up of the Back press that started it does not end it at once.

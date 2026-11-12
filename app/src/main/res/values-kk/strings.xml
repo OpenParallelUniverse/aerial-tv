@@ -316,4 +316,15 @@
     <string name="kids_blocked">«%s» мұнда қолжетімсіз</string>
     <string name="kids_warn">%d мин қалды</string>
     <string name="kids_warn_break">%d минуттан кейін үзіліс</string>
+
+    <!-- Top Shelf -->
+    <string name="ts_setting">Жоғарғы сөре</string>
+    <string name="ts_setting_hint">Таңдалған қолданбаның қолжетімді мазмұнын көрсету. Телебағдарламаларды оқу рұқсаты қажет. Қайта сұрау үшін өшіріп, қосыңыз. Бір қатар ұсынылады.</string>
+    <string name="ts_on">Қосу</string>
+    <string name="ts_off">Өшіру</string>
+    <string name="ts_continue">Көруді жалғастыру</string>
+    <string name="ts_recommend">Ұсыныстар</string>
+    <string name="ts_up_hint">↑ Мазмұнды таңдау</string>
+    <string name="ts_progress">Қаралды: %1$d%%</string>
+    <string name="ts_test_app_name">Aerial Top Shelf сынағы</string>
 </resources>

@@ -42,6 +42,7 @@ import app.orchard.tv.ui.home.TileFaces
 import app.orchard.tv.ui.theme.Glyph
 import app.orchard.tv.ui.theme.canvasDensity
 import app.orchard.tv.wallpaper.Wallpapers
+import app.orchard.tv.topshelf.TopShelfStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -79,6 +80,7 @@ private const val LEADING_TILES = 13
 private val BOOT_CATCH_UP_MS = listOf(60_000L, 180_000L)
 
 class HomeViewModel(app: Application) : AndroidViewModel(app) {
+    val topShelf = TopShelfStore(app, viewModelScope)
     private val context get() = getApplication<Application>()
     private val store = LayoutStore(app)
     private var all: List<AppEntry> = emptyList()
@@ -701,6 +703,7 @@ class HomeViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     override fun onCleared() {
+        topShelf.watch(false)
         CustomIcons.removeOnChange(customIconsChanged)
         if (AppCatalog.renameFolder == ::renameFolder) AppCatalog.renameFolder = null
         if (AppCatalog.pinSource == ::pinSourceById) AppCatalog.pinSource = null
