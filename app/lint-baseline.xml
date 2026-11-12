@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Existing upstream errors from a0f4b59, checked in CI run 5. New issues remain fatal. -->
+<issues format="6" by="lint 8.12.0">
+    <issue id="RestrictedApi" message="ComponentActivity.dispatchKeyEvent can only be called from within the same library group prefix (referenced groupId=androidx.core with prefix androidx from groupId=Aerial)">
+        <location file="src/main/java/app/orchard/tv/MainActivity.kt" line="858" />
+    </issue>
+    <issue id="RestrictedApi" message="ComponentActivity.dispatchKeyEvent can only be called from within the same library group prefix (referenced groupId=androidx.core with prefix androidx from groupId=Aerial)">
+        <location file="src/main/java/app/orchard/tv/MainActivity.kt" line="859" />
+    </issue>
+    <issue id="RestrictedApi" message="ComponentActivity.dispatchKeyEvent can only be called from within the same library group prefix (referenced groupId=androidx.core with prefix androidx from groupId=Aerial)">
+        <location file="src/main/java/app/orchard/tv/MainActivity.kt" line="859" />
+    </issue>
+    <issue id="RestrictedApi" message="ComponentActivity.dispatchKeyEvent can only be called from within the same library group prefix (referenced groupId=androidx.core with prefix androidx from groupId=Aerial)">
+        <location file="src/main/java/app/orchard/tv/MainActivity.kt" line="904" />
+    </issue>
+    <issue id="RestrictedApi" message="ComponentActivity.dispatchKeyEvent can only be called from within the same library group prefix (referenced groupId=androidx.core with prefix androidx from groupId=Aerial)">
+        <location file="src/main/java/app/orchard/tv/MainActivity.kt" line="904" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/LiveWallpaper.kt" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/LiveWallpaper.kt" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/LiveWallpaper.kt" line="234" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/LiveWallpaper.kt" line="234" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/LiveWallpaper.kt" line="234" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/LiveWallpaper.kt" line="515" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/LiveWallpaper.kt" line="515" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/LiveWallpaper.kt" line="515" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/LiveWallpaper.kt" line="515" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/LiveWallpaper.kt" line="871" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/LiveWallpaper.kt" line="871" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/LiveWallpaper.kt" line="871" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/VideoWallpaper.kt" line="170" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/VideoWallpaper.kt" line="172" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/VideoWallpaper.kt" line="172" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/VideoWallpaper.kt" line="172" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/VideoWallpaper.kt" line="186" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/VideoWallpaper.kt" line="186" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/VideoWallpaper.kt" line="191" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/VideoWallpaper.kt" line="199" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/VideoWallpaper.kt" line="424" />
+    </issue>
+    <issue id="UnsafeOptInUsageError" message="This declaration is opt-in and its usage should be marked with @androidx.media3.common.util.UnstableApi or @OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)">
+        <location file="src/main/java/app/orchard/tv/ui/home/VideoWallpaper.kt" line="424" />
+    </issue>
+    <issue id="UnsafeImplicitIntentLaunch" message="The intent action android.intent.action.CLOSE_SYSTEM_DIALOGS (used to send a broadcast) matches the intent filter of a non-exported receiver, registered via a call to Context.registerReceiver, or similar. If you are trying to invoke this specific receiver via the action then you should use Intent.setPackage(&lt;APPLICATION_ID&gt;).">
+        <location file="src/main/java/app/orchard/tv/guard/HomeGuardService.kt" line="1710" />
+    </issue>
+    <issue id="IntentFilterExportedReceiver" message="As of Android 12, android:exported must be set; use true to make the activity available to other apps, and false otherwise. For launcher activities, this should be set to true.">
+        <location file="src/standard/AndroidManifest.xml" line="11" />
+    </issue>
+</issues>

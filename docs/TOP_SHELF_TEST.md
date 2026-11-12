@@ -52,3 +52,5 @@ Watch Next 不是完整播放历史。应用必须主动发布对第三方可见
 ## CI
 
 推送 `feature/top-shelf` 自动执行 standard／guard 的 release 单测、lint 和 APK 构建。检查通过后创建独立的 `topshelf-test-<run number>` 预发布 Release（不标为 Latest），附带两个 APK、dex metadata、校验和、混淆映射及本文档。Pull Request 只检查和上传构建产物，不发布 Release。
+
+单测使用原包名运行，以保留官方升级流程的测试约束；随后以独立包名执行 lint 和打包，并验证 APK 元数据中的包名与版本号。`app/lint-baseline.xml` 精确记录上游已有的 RestrictedApi、Media3 opt-in、旧广播和 Manifest 合并检查问题，不屏蔽新增 lint 错误，也不屏蔽 NewApi 检查。

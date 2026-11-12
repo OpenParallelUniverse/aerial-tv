@@ -53,6 +53,9 @@ jobs:
           mkdir -p dist
           for variant in standard guard; do
             apk="app/build/outputs/apk/$variant/release/app-$variant-release.apk"
+            python3 -c 'import json,sys; data=json.load(open(sys.argv[1])); assert data["applicationId"] == "app.orchard.tv.topshelf", data; assert data["elements"][0]["versionCode"] == int(sys.argv[2])' \
+              "app/build/outputs/apk/$variant/release/output-metadata.json" "$((100000 + GITHUB_RUN_NUMBER))"
+            cp "app/build/outputs/apk/$variant/release/output-metadata.json" "dist/metadata-$variant.json"
             cp "$apk" "dist/aerial-topshelf-$variant.apk"
             for api in 28 31; do
               unzip -p "$apk" "assets/aerial-dm/$api.dm" > "dist/aerial-topshelf-$variant-api$api.dm"
@@ -82,5 +85,6 @@ jobs:
           path: |
             app/build/reports/tests/
             app/build/reports/lint-results-*.html
+            app/build/reports/lint-results-*.xml
             app/build/test-results/
           if-no-files-found: ignore

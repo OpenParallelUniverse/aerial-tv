@@ -41,6 +41,8 @@ android {
     // and the guard crashed on every bind on Android 5 (issues #1010 #1012 #1017 #1018).
     lint {
         fatal += "NewApi"
+        // Exact findings inherited from upstream; keep all new lint errors blocking CI.
+        baseline = file("lint-baseline.xml")
     }
 
     // standard: a normal HOME app. guard: no HOME intent filter at all, for China-market firmwares
