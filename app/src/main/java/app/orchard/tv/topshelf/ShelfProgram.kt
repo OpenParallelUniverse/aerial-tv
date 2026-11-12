@@ -24,7 +24,7 @@ data class ShelfProgram(
     val contentId: String? = null,
 ) {
     val stableKey: String get() = packageName + ":" + kind.name + ":" + (contentId?.takeIf { it.isNotBlank() } ?: intentUri)
-    val remainingMinutes: Long? get() = if (durationMs > positionMs && positionMs > 0) (durationMs - positionMs + 59_999) / 60_000 else null
+    val remainingMinutes: Long? get() = if (durationMs > positionMs && positionMs > 0) (durationMs - positionMs).let { it / 60_000 + if (it % 60_000 > 0) 1 else 0 } else null
     val progress: Float? get() = if (durationMs > 0 && positionMs > 0)
         (positionMs.toDouble() / durationMs).coerceIn(0.0, 1.0).toFloat() else null
 

@@ -33,6 +33,12 @@ class TopShelfStoreTest {
                 assertNotNull(projection)
                 return MatrixCursor(projection).apply {
                     addRow(projection!!.map { column -> when (column) {
+                        "browsable" -> 1L
+                        "watch_next_type" -> 2L
+                        "season_display_number" -> "1"
+                        "episode_display_number" -> "5"
+                        "episode_title" -> "Episode five"
+                        "content_id" -> "film-7"
                         "_id" -> 7L
                         "package_name" -> "test.player"
                         "title" -> "A film"
@@ -56,5 +62,9 @@ class TopShelfStoreTest {
         assertEquals("content://test.player/art/7", rows.single().posterUri)
         assertEquals(0.4f, rows.single().progress!!, 0.001f)
         assertEquals(12345L, rows.single().engagementTime)
+        assertEquals(2, rows.single().watchNextType)
+        assertEquals("1", rows.single().season)
+        assertEquals("5", rows.single().episode)
+        assertEquals("film-7", rows.single().contentId)
     }
 }

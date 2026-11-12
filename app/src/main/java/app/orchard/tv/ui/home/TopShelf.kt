@@ -159,7 +159,7 @@ private fun programSubtitle(program: ShelfProgram): String {
     if (!program.season.isNullOrBlank() && !program.episode.isNullOrBlank()) parts += "S${program.season.padStart(2, '0')}E${program.episode.padStart(2, '0')}"
     else if (!program.episode.isNullOrBlank()) parts += stringResource(R.string.ts_episode, program.episode)
     program.episodeTitle?.takeIf { it != program.title }?.let { parts += it }
-    program.remainingMinutes?.let { parts += stringResource(R.string.ts_remaining, it.toInt()) }
+    program.remainingMinutes?.let { parts += stringResource(R.string.ts_remaining, it.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()) }
     program.channelName?.let { parts += it }
     if (parts.isEmpty()) program.description?.let { parts += it }
     return parts.joinToString(" · ")
@@ -205,6 +205,7 @@ private fun ShelfCard(
             if (state.focused && !AerialSettings.lite) decorations?.first?.let { shadow ->
                 translate(-shadow.ext, -shadow.ext + 10 * density) { drawImage(shadow.image) }
             }
+            if (picture == null) drawRoundRect(Palette.Glass, cornerRadius = CornerRadius(12 * density))
             picture?.let { drawImage(it) }
             if (program.kind == ShelfKind.Continue && program.durationMs > 0) {
                 val bar = 3 * density; val pad = 10 * density

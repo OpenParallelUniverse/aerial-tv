@@ -95,7 +95,7 @@ class TopShelfStore(private val context: Context, private val scope: CoroutineSc
                 }
             }
             result.onSuccess {
-                programs = it
+                programs = it.mapValues { (_, rows) -> rows.filter(preferences::accepts) }.filterValues { rows -> rows.isNotEmpty() }
                 access = ShelfAccess.Ready
                 DiagLog.i("top shelf: ${it.size} apps, ${it.values.sumOf { rows -> rows.size }} visible programs")
             }.onFailure {
@@ -129,7 +129,10 @@ class TopShelfStore(private val context: Context, private val scope: CoroutineSc
         val cursor = try { context.contentResolver.query(uri, projection, null, null, null) }
         catch (_: IllegalArgumentException) {
             // Older vendor schemas may omit optional season/channel/content columns.
-            context.contentResolver.query(uri, arrayOf("_id", "package_name", "title", "poster_art_uri", "intent_uri", "browsable"), null, null, null)
+            val core = arrayOf("_id", "package_name", "title", "poster_art_uri", "thumbnail_uri", "intent_uri", "browsable") +
+                if (kind == ShelfKind.Continue) arrayOf("last_playback_position_millis", "duration_millis", "last_engagement_time_utc_millis", "watch_next_type")
+                else arrayOf("weight", "channel_id")
+            context.contentResolver.query(uri, core, null, null, null)
         }
         return cursor?.use { c ->
             buildList {
