@@ -68,6 +68,14 @@ android {
     // back to this machine's debug key, which installs fresh but cannot update existing copies.
     val signingProps = rootProject.file("local/signing.properties")
     signingConfigs {
+        if (project.hasProperty("topShelfTest")) {
+            create("topShelfTest") {
+                storeFile = rootProject.file("local/topshelf-test.keystore")
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
         if (signingProps.exists()) {
             val p = Properties().apply { signingProps.inputStream().use { load(it) } }
             create("aerial") {
@@ -84,7 +92,9 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.findByName("aerial") ?: signingConfigs.getByName("debug")
+            signingConfig = if (project.hasProperty("topShelfTest")) {
+                signingConfigs.getByName("topShelfTest")
+            } else signingConfigs.findByName("aerial") ?: signingConfigs.getByName("debug")
         }
     }
 

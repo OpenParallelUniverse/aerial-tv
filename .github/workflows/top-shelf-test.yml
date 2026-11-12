@@ -37,8 +37,8 @@ jobs:
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - name: Restore public test certificate
         run: |
-          mkdir -p "$HOME/.android"
-          base64 --decode .github/test-signing/test.keystore.b64 > "$HOME/.android/debug.keystore"
+          mkdir -p local
+          base64 --decode .github/test-signing/test.keystore.b64 > local/topshelf-test.keystore
       - name: Test release code with the original package identity
         run: |
           gradle --no-daemon --max-workers=2 \
