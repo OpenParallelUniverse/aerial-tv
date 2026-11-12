@@ -350,6 +350,10 @@ fun HomeScreen(
     val shelfPrograms = shelfPackage?.let { vm.topShelf.programs[it] }.orEmpty()
     val shelfVisible = shelfEnabled && shelfPrograms.isNotEmpty() && shelfApp?.packageName == shelfPackage &&
         overlay == Overlay.None && moving == null && !pillFocused && !vm.screensaverVisible
+    val shelfAlpha by animateFloatAsState(
+        if (shelfVisible) 1f else 0f,
+        if (reduced) snap() else tween(180, easing = Motion.EaseOut), label = "top-shelf",
+    )
 
     // The aerial wallpaper's film, and how far it shows through.
     val filmCover = remember { Animatable(0f) }
@@ -935,7 +939,8 @@ fun HomeScreen(
                 onOpen = { program -> program.launchIntent()?.let { intent ->
                     onOpenProgram(intent)
                 } },
-                modifier = Modifier.padding(start = metrics.margin - 5.dp, end = metrics.margin, top = 82.dp),
+                modifier = Modifier.padding(start = metrics.margin - 5.dp, end = metrics.margin, top = 82.dp)
+                    .graphicsLayer { alpha = shelfAlpha; translationY = (1f - shelfAlpha) * 10.dp.toPx() },
             )
         }
 

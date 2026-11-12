@@ -81,6 +81,14 @@ site/update/                        电视升级页二维码打开的页面：�
 
 ## 首页
 
+### Top Shelf（实验分支 `feature/top-shelf`）
+
+`topshelf/TopShelfStore.kt` 在 Android 8+ 读取授权后可见的 Watch Next 与 Preview Programs，按包名聚合；非特权查询不传 selection，读取后排序和去重。监听 Provider 变更，首页暂停时取消监听和读取，回到首页时刷新。仅处理当前用户的数据，不修改系统频道或 browsable 状态。
+
+`ui/home/TopShelf.kt` 是独立 Compose 内容区，使用现有 Pressable，处理卡片、分类和方向键。HomeScreen 保留来源应用的 focusedKey，首排应用停留 250ms 才展示；上键进内容，下键／返回回来源磁贴，分类再向上可到状态胶囊。内容链接限定到提供方包名，封面在后台限流、限量解码。儿童／长辈模式不显示内容。
+
+个性化的「顶部内容」开关由 AerialSettings 保存，普通包默认关闭，测试包默认开启。`-PtopShelfTest` 生成独立的 `app.orchard.tv.topshelf` 包，不覆盖正式安装；CI 使用公开测试证书构建 optimized release，并在检查通过后发布 prerelease，不改变官网升级源。测试与安装步骤见 `TOP_SHELF_TEST.md`。尚未经过真机验证。
+
 - **画布**：`MainActivity` 用 `LocalDensity` 把内容缩放到 960×540dp 的设计画布（`density = 屏幕宽 / 960`）。不同厂商的 1080p 屏幕 dpi 不同（小米 320，TCL 240），这样排版完全一致。Compose 里所有 dp/sp 都按这个画布理解。
 - **分辨率**：系统给 App 的界面多大，就按多大画（`ui/theme/Theme.kt` 的 `canvasDensity`：1080p 界面是 2，4K 界面是 4）。预先画好的位图也按它算：磁贴图是「聚焦放大后的磁贴」的实际像素（1080p 时 352×198，4K 时 704×396），壁纸按屏幕像素解码，界面超过 1080p 时每日精选下载必应的 UHD 图。大部分 4K 电视的界面其实是 1080p（Android TV 的 `config_maxUiWidth` = 1920）；只有厂商放开这个限制的电视才会拿到 4K 界面，这条路径在 Android 15 的 4K 模拟器（`Aerial4KUI`，非 TV 镜像，没有这个限制）上验证过。界面是 1080p 时分两种：
   - 显示模式也是 1080p（家里三台：TCL MT5879、小米 MFTR0、MFFU1 都只报 1920×1080 的模式）：系统按 1080p 合成，由电视硬件放大，App 画得再细也没用。

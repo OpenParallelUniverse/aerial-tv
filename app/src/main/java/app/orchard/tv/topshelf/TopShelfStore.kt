@@ -59,8 +59,18 @@ class TopShelfStore(private val context: Context, private val scope: CoroutineSc
         if (!watching) return
         load?.cancel()
         load = scope.launch {
-            if (!supported()) { access = ShelfAccess.Unsupported; programs = emptyMap(); return@launch }
-            if (!permitted()) { access = ShelfAccess.PermissionRequired; programs = emptyMap(); return@launch }
+            if (!supported()) {
+                access = ShelfAccess.Unsupported
+                programs = emptyMap()
+                DiagLog.i("top shelf: Unsupported")
+                return@launch
+            }
+            if (!permitted()) {
+                access = ShelfAccess.PermissionRequired
+                programs = emptyMap()
+                DiagLog.i("top shelf: PermissionRequired")
+                return@launch
+            }
             if (!observed) {
                 observed = runCatching {
                     listOf(WATCH_NEXT, PREVIEWS, CHANNELS).forEach {
@@ -75,9 +85,13 @@ class TopShelfStore(private val context: Context, private val scope: CoroutineSc
             delay(250)
             val result = withContext(Dispatchers.IO) {
                 runCatching {
-                    val watch = readPrograms(WATCH_NEXT, ShelfKind.Continue)
-                    val recommendations = readPrograms(PREVIEWS, ShelfKind.Recommend)
-                    groupShelfPrograms(watch + recommendations)
+                    val sources = listOf(
+                        runCatching { readPrograms(WATCH_NEXT, ShelfKind.Continue) },
+                        runCatching { readPrograms(PREVIEWS, ShelfKind.Recommend) },
+                    )
+                    val readable = sources.mapNotNull { it.getOrNull() }
+                    if (readable.isEmpty()) throw sources.firstNotNullOf { it.exceptionOrNull() }
+                    groupShelfPrograms(readable.flatten())
                 }
             }
             result.onSuccess {
@@ -92,7 +106,7 @@ class TopShelfStore(private val context: Context, private val scope: CoroutineSc
         }
     }
 
-    private fun readPrograms(uri: Uri, kind: ShelfKind): List<ShelfProgram> {
+    internal fun readPrograms(uri: Uri, kind: ShelfKind): List<ShelfProgram> {
         val projection = arrayOf("_id", "package_name", "title", "poster_art_uri", "thumbnail_uri", "intent_uri") +
             if (kind == ShelfKind.Continue) arrayOf("last_playback_position_millis", "duration_millis", "last_engagement_time_utc_millis")
             else arrayOf("weight")

@@ -81,7 +81,9 @@ fun TopShelf(
     val tabs = remember(packageName) { ShelfKind.entries.associateWith { FocusRequester() } }
     var selectedId by remember(packageName) { mutableStateOf<String?>(null) }
     var hadFocus by remember(packageName) { mutableStateOf(false) }
+    var cardFocused by remember(packageName) { mutableStateOf(false) }
     val focusedNow by rememberUpdatedState(hadFocus)
+    val cardFocusedNow by rememberUpdatedState(cardFocused)
     val itemsNow by rememberUpdatedState(items)
     val selectedNow by rememberUpdatedState(selectedId)
 
@@ -99,7 +101,7 @@ fun TopShelf(
     }
     // A provider update may remove a focused card while the user is browsing it.
     LaunchedEffect(items) {
-        if (focusedNow && itemsNow.none { it.id == selectedNow }) focusCard(0)
+        if (focusedNow && cardFocusedNow && itemsNow.none { it.id == selectedNow }) focusCard(0)
     }
 
     Column(modifier.onFocusChanged { hadFocus = it.hasFocus; onFocus(it.hasFocus) }.focusGroup()) {
@@ -111,7 +113,7 @@ fun TopShelf(
             groups.forEachIndexed { index, group ->
                 Pressable(
                     onClick = { kind = group; selectedId = null }, focusRequester = tabs.getValue(group),
-                    modifier = Modifier.onFocusChanged { if (it.isFocused) { kind = group; selectedId = null } },
+                    modifier = Modifier.onFocusChanged { if (it.isFocused) { cardFocused = false; kind = group; selectedId = null } },
                     onKey = { e -> direction(e) { code ->
                         when (code) {
                             NativeKeyEvent.KEYCODE_DPAD_DOWN -> focusCard(0)
@@ -135,7 +137,7 @@ fun TopShelf(
             itemsIndexed(items, key = { _, p -> p.id }) { index, program ->
                 ShelfCard(
                     program, cardHeight, requesters.getOrPut(program.id) { FocusRequester() },
-                    onFocused = { selectedId = program.id }, onOpen = { onOpen(program) },
+                    onFocused = { cardFocused = true; selectedId = program.id }, onOpen = { onOpen(program) },
                     onKey = { e -> direction(e) { code ->
                         when (code) {
                             NativeKeyEvent.KEYCODE_DPAD_DOWN -> onDown()

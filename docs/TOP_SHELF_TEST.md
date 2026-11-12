@@ -47,7 +47,7 @@ Watch Next 不是完整播放历史。应用必须主动发布对第三方可见
 
 原生 Android 8 以下、缺少 TvProvider 的固件、未授权或无可见条目时保留原桌面。Lite 不在本次范围内。不使用 Root，也不申请系统特权 EPG 权限。
 
-诊断日志 tag `Aerial` 的 `top shelf:` 行包含可见应用数、条目数或访问失败类型，不记录标题、封面或播放链接。`READ_TV_LISTINGS` 需要授予读取应用，直接在 ADB shell 查询得到空结果不能证明应用没有发布数据。
+诊断日志 tag `AerialDiag` 的 `top shelf:` 行包含可见应用数、条目数或访问失败类型，不记录标题、封面或播放链接。`READ_TV_LISTINGS` 需要授予读取应用，直接在 ADB shell 查询得到空结果不能证明应用没有发布数据。
 
 ## CI
 
