@@ -27,8 +27,15 @@ object ShelfImages {
     private const val MAX_AGE = 3L * 24 * 60 * 60 * 1000
     private val slots = Semaphore(2)
     private val diskLock = Any()
-    private val cache = object : LruCache<String, Bitmap>(12 * 1024 * 1024) {
-        override fun sizeOf(key: String, value: Bitmap) = value.byteCount
+    private data class CachedArt(val bitmap: Bitmap, val storedAt: Long)
+    private val cache = object : LruCache<String, CachedArt>(12 * 1024 * 1024) {
+        override fun sizeOf(key: String, value: CachedArt) = value.bitmap.byteCount
+    }
+    private fun cached(key: String): Bitmap? {
+        val entry = cache.get(key) ?: return null
+        if (System.currentTimeMillis() - entry.storedAt < MAX_AGE) return entry.bitmap
+        cache.remove(key)
+        return null
     }
 
     fun trimMemory() { cache.evictAll() }
@@ -36,15 +43,15 @@ object ShelfImages {
     suspend fun load(context: Context, value: String, width: Int = 392, height: Int = 220): Bitmap? = withContext(Dispatchers.IO) {
         val w = width.coerceIn(1, 1568); val h = height.coerceIn(1, 880)
         val key = "$value@$w:$h:v2"
-        cache.get(key)?.let { return@withContext it }
+        cached(key)?.let { return@withContext it }
         slots.withPermit {
-            cache.get(key)?.let { return@withPermit it }
+            cached(key)?.let { return@withPermit it }
             runCatching {
                 val directory = File(context.cacheDir, "topshelf-art").apply { mkdirs() }
                 val hash = MessageDigest.getInstance("SHA-256").digest(key.toByteArray()).joinToString("") { "%02x".format(it) }
                 val disk = File(directory, "$hash.png")
                 if (disk.exists() && System.currentTimeMillis() - disk.lastModified() < MAX_AGE) {
-                    BitmapFactory.decodeFile(disk.path)?.let { cache.put(key, it); return@runCatching it }
+                    BitmapFactory.decodeFile(disk.path)?.let { cache.put(key, CachedArt(it, disk.lastModified())); return@runCatching it }
                 }
                 val uri = Uri.parse(value)
                 val bytes = when (uri.scheme) {
@@ -67,7 +74,7 @@ object ShelfImages {
                     ?: return@runCatching null
                 val art = bake(raw, w, h)
                 raw.recycle()
-                cache.put(key, art)
+                cache.put(key, CachedArt(art, System.currentTimeMillis()))
                 // Disk failure must not discard already decoded content.
                 runCatching { synchronized(diskLock) {
                     val temporary = File(directory, "$hash.part")
