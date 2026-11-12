@@ -31,6 +31,8 @@ jobs:
           gradle-version: '8.14.3'
           cache-read-only: ${{ github.event_name == 'pull_request' }}
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
       - name: Install Android SDK platform
         run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - name: Restore public test certificate
