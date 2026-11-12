@@ -106,6 +106,15 @@ class TopShelfTest {
         assertEquals("rec", opened)
     }
 
+    @Test fun removingFocusedProgramRecoversToAValidCard() {
+        mount()
+        tap(KeyEvent.KEYCODE_DPAD_RIGHT)
+        compose.runOnUiThread { rows = rows.filterNot { it.id == "two" } }
+        settle()
+        tap(KeyEvent.KEYCODE_DPAD_CENTER)
+        assertEquals("one", opened)
+    }
+
     private fun program(id: String, kind: ShelfKind = ShelfKind.Continue) =
         ShelfProgram(id, "test.player", id, null, "https://example.test/$id", kind)
 }

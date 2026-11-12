@@ -80,8 +80,11 @@ fun TopShelf(
         if (interactive) navigation.enter = { request(programs.indexOfFirst { it.id == selectedId }.coerceAtLeast(0)) }
         onDispose { if (interactive) navigation.enter = null }
     }
+    // Capture before composition removes the old focus target. Reading focused inside the
+    // coroutine would observe the subsequent focus-loss event and miss recovery entirely.
+    val recoverRemovedSelection = focused && selectedId != null && programs.none { it.id == selectedId }
     LaunchedEffect(programs) {
-        if (interactive && focused && programs.none { it.id == selectedId }) request(0)
+        if (interactive && recoverRemovedSelection) request(0)
     }
     fun closeMenu() { menu = null; request(index) }
     BackHandler(enabled = interactive && menu != null) { closeMenu() }
